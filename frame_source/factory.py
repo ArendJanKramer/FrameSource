@@ -16,6 +16,8 @@ Usage:
 
 from typing import Any
 import logging
+
+from .genicam_capture import GenicamCapture
 from .video_capture_base import VideoCaptureBase
 from .basler_capture import BaslerCapture
 from .ximea_capture import XimeaCapture
@@ -41,6 +43,7 @@ class FrameSourceFactory:
         'ximea': XimeaCapture,
         'basler': BaslerCapture,
         'screen': ScreenCapture,
+        'genicam': GenicamCapture,
     }
     
     @classmethod
