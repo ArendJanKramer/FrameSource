@@ -21,12 +21,12 @@ from .genicam_capture import GenicamCapture
 from .realsense_capture import RealsenseCapture
 from .video_capture_base import VideoCaptureBase
 from .basler_capture import BaslerCapture
-from .webcam_capture import WebcamCapture
 from .ipcamera_capture import IPCameraCapture
 from .video_file_capture import VideoFileCapture
 from .folder_capture import FolderCapture
 from .screen_capture import ScreenCapture
 from .audiospectrogram_capture import AudioSpectrogramCapture
+from .webcam_capture_nokhwa import WebcamCaptureNokhwa
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -39,7 +39,7 @@ class FrameSourceFactory:
     _capture_types = {
         'folder': FolderCapture,
         'video_file': VideoFileCapture,
-        'webcam': WebcamCapture,
+        'webcam': WebcamCaptureNokhwa,
         'ipcam': IPCameraCapture,
         'basler': BaslerCapture,
         'realsense': RealsenseCapture,
