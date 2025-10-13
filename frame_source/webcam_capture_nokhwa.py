@@ -2,7 +2,7 @@ from typing import Optional, Tuple, Any, Dict
 
 import cv2
 import numpy as np
-import camerata
+import omni_camera
 import logging
 
 try:
@@ -80,9 +80,9 @@ class WebcamCaptureNokhwa(VideoCaptureBase):
     
     def __init__(self, source: str = "", **kwargs):
         super().__init__(source, **kwargs)
-        self.cap : Optional[camerata.Camera] = None
-        self.fmt : Optional[camerata.CameraFormat] = None
-        self.controls : Optional[Dict[str, camerata.CameraControl]] = None
+        self.cap : Optional[omni_camera.Camera] = None
+        self.fmt : Optional[omni_camera.CameraFormat] = None
+        self.controls : Optional[Dict[str, omni_camera.CameraControl]] = None
         self.source = source
 
         if 'is_mono' in kwargs:
@@ -91,7 +91,7 @@ class WebcamCaptureNokhwa(VideoCaptureBase):
     def connect(self) -> bool:
         """Connect to webcam."""
         try:
-            cameras = camerata.query(only_usable=True)
+            cameras = omni_camera.query(only_usable=True)
             print(f"python got {cameras}")
 
             # exit()
@@ -100,8 +100,8 @@ class WebcamCaptureNokhwa(VideoCaptureBase):
                 if self.source in c.name.lower() or self.source in c.misc.lower():
                     picked_cam = c
 
-            cam = camerata.Camera(picked_cam) # Open a camera
-            fmts : camerata.CameraFormatOptions = cam.get_format_options()
+            cam = omni_camera.Camera(picked_cam) # Open a camera
+            fmts : omni_camera.CameraFormatOptions = cam.get_format_options()
 
             fmt = fmts.find_highest_resolution()
 
@@ -260,11 +260,10 @@ class WebcamCaptureNokhwa(VideoCaptureBase):
     @classmethod
     def discover(cls) -> list:
         try:
-            import camerata
             import time
             import cv2
 
-            cameras = camerata.query(only_usable=True)
+            cameras = omni_camera.query(only_usable=True)
 
             devices = []
 
