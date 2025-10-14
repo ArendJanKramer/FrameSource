@@ -402,6 +402,7 @@ class RealsenseCapture(VideoCaptureBase):
                     device = device_list[index]
                     device_data = {
                         'index': index,
+                        'id': device.get_info(rs.camera_info.serial_number),
                         'serial_number': device.get_info(rs.camera_info.serial_number),
                         'name': device.get_info(rs.camera_info.name),
                         'product_line': device.get_info(rs.camera_info.product_line)
