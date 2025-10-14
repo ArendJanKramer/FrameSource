@@ -1,4 +1,4 @@
-from typing import Optional, Tuple, Any, Dict
+from typing import Optional, Tuple, Any, Dict, Union
 import numpy as np
 import cv2
 import logging
@@ -102,7 +102,7 @@ class RealsenseCapture(VideoCaptureBase):
 
     """Realsense camera capture using Realsense lib."""
 
-    def __init__(self, source: int = 0, **kwargs):
+    def __init__(self, source: Union[str, int] = 0, **kwargs):
         super().__init__(source, **kwargs)
         self.pipeline = None
         self.device = None
@@ -121,8 +121,13 @@ class RealsenseCapture(VideoCaptureBase):
         if self._default_processor is None:
             self._default_processor = RealsenseDepthProcessor(output_format=RealsenseProcessingOutput.RGB)
         self.attach_processor(self._default_processor)
-        
-        self.source = source if isinstance(source, int) else 0
+
+        _source : Union[str, int] = source
+        if str(_source).isdigit():
+            _source = int(_source)
+        if isinstance(_source, int) and _source > 10:
+            # Most likely not an index but serial number
+            self.source = str(_source)
 
         if 'is_mono' in kwargs:
             logger.warning("'is_mono' argument is only used for certain industrial cameras and has no effect for realsense camera.")
