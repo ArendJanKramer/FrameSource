@@ -18,8 +18,12 @@ dependencies = [
     "numpy",
     "mss",
     "numba",
-    "watchdog"
+    "watchdog",
+    "omni-camera"
 ]
+
+[tool.uv.sources]
+omni-camera = { git = "https://github.com/ArendJanKramer/OmniCamera.git", rev = "b85f2d6dc2ba06ca46568b15e967bae8a614db7c" }
 
 [project.optional-dependencies]
 audio = [
@@ -32,6 +36,10 @@ basler = [
 ]
 genicam = [
     "harvesters"
+]
+industrial_cameras = [
+    "harvesters",
+    "pypylon"
 ]
 realsense = [
     "pyrealsense2"
