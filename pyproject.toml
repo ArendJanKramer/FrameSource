@@ -30,6 +30,9 @@ audio = [
 basler = [
     "pypylon"
 ]
+genicam = [
+    "harvesters"
+]
 realsense = [
     "pyrealsense2"
 ]
@@ -38,6 +41,7 @@ full = [
     "soundfile",
     "pyaudio",
     "pypylon",
+    "harvesters",
     "pyrealsense2"
 ]
 
