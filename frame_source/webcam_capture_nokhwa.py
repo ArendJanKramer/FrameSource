@@ -1,3 +1,4 @@
+import time
 from typing import Optional, Tuple, Any, Dict
 
 import cv2
@@ -92,24 +93,23 @@ class WebcamCaptureNokhwa(VideoCaptureBase):
         """Connect to webcam."""
         try:
             cameras = omni_camera.query(only_usable=True)
-            print(f"python got {cameras}")
 
             # exit()
             picked_cam = cameras[0]
             for c in cameras:
                 if self.source in c.name.lower() or self.source in c.misc.lower():
                     picked_cam = c
+            print(f"Connected to webcam {picked_cam.name} at {picked_cam.description}")
 
             cam = omni_camera.Camera(picked_cam) # Open a camera
             fmts : omni_camera.CameraFormatOptions = cam.get_format_options()
 
+            fmts = fmts.prefer_fps_range(0, 60)
             fmt = fmts.find_highest_resolution()
-
-            # for f in fmts:
-            #     if f.width == 640 and f.height == 360 and f.frame_rate == 30:
-            #         fmt = f
+            print(f"Picked format {fmt.width}x{fmt.height}@{fmt.frame_rate}")
 
             cam.open(fmt)
+            time.sleep(1)
             self.cap = cam
             self.fmt = fmt
 
@@ -140,7 +140,7 @@ class WebcamCaptureNokhwa(VideoCaptureBase):
         """Disconnect from webcam."""
         try:
             if self.cap is not None:
-                # self.cap.release()
+                self.cap.close()
                 self.cap = None
             self.is_connected = False
             logger.info("Disconnected from webcam")
@@ -213,8 +213,8 @@ class WebcamCaptureNokhwa(VideoCaptureBase):
         
         # width = int(self.cap.get(cv2.CAP_PROP_FRAME_WIDTH))
         # height = int(self.cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
-        width, height = 0,0
-        return (width, height)
+        width, height = self.fmt.width,self.fmt.height
+        return width, height
     
     def set_frame_size(self, width: int, height: int) -> bool:
         """Set frame size."""

@@ -1,11 +1,11 @@
-import time
-
-import cv2
+import uuid
 from typing import Any, List
 
-from frame_source import FrameSourceFactory
+import cv2
+
 from frame_processors.equirectangular360_processor import Equirectangular2PinholeProcessor
-from frame_source.realsense_capture import RealsenseCapture
+from frame_source import FrameSourceFactory, VideoCaptureBase
+from frame_source.webcam_capture_nokhwa import WebcamCaptureNokhwa
 
 
 def test_audio_spectrogram(source=None, **kwargs):
@@ -392,28 +392,42 @@ def test_multiple_cameras(cameras: List[Any], threaded: bool = True):
     grid_rows = 2
     win_w, win_h = 640, 480
     for idx, cam_cfg in enumerate(cameras):
-        name = cam_cfg.pop('capture_type', None)
-        if not name:
-            print(f"Camera config missing 'capture_type': {cam_cfg}")
-            continue
-        cv2.namedWindow(f"{name}", cv2.WINDOW_NORMAL)
-        # Set window size and position for grid
-        cv2.resizeWindow(f"{name}", win_w, win_h)
-        col = idx % grid_cols
-        row = idx // grid_cols
-        x = col * win_w
-        y = row * win_h
-        cv2.moveWindow(f"{name}", x, y + (25 * row))  # Add some vertical spacing
-        print(f"Testing {name} Capture:")
-        camera = FrameSourceFactory.create(name, **cam_cfg)
-        if camera.connect():
-            camera.enable_auto_exposure(True)  # Enable auto exposure by default
-            if threaded:
-                camera.start_async()  # Always use threaded capture for this test
-            capture_instances.append((name, camera))
-            print(f"Connected to {name} camera")
+        if isinstance(cam_cfg, VideoCaptureBase):
+            name = "blabla" + str(uuid.uuid4())
+            cv2.namedWindow(f"{name}", cv2.WINDOW_NORMAL)
+            # Set window size and position for grid
+            cv2.resizeWindow(f"{name}", win_w, win_h)
+            col = idx % grid_cols
+            row = idx // grid_cols
+            x = col * win_w
+            y = row * win_h
+            cv2.moveWindow(f"{name}", x, y + (25 * row))  # Add some vertical spacing
+
+            cam_cfg.connect()
+            capture_instances.append((name, cam_cfg))
         else:
-            print(f"Failed to connect to {name} camera")
+            name = cam_cfg.pop('capture_type', None)
+            if not name:
+                print(f"Camera config missing 'capture_type': {cam_cfg}")
+                continue
+            cv2.namedWindow(f"{name}", cv2.WINDOW_NORMAL)
+            # Set window size and position for grid
+            cv2.resizeWindow(f"{name}", win_w, win_h)
+            col = idx % grid_cols
+            row = idx // grid_cols
+            x = col * win_w
+            y = row * win_h
+            cv2.moveWindow(f"{name}", x, y + (25 * row))  # Add some vertical spacing
+            print(f"Testing {name} Capture:")
+            camera = FrameSourceFactory.create(name, **cam_cfg)
+            if camera.connect():
+                camera.enable_auto_exposure(True)  # Enable auto exposure by default
+                if threaded:
+                    camera.start_async()  # Always use threaded capture for this test
+                capture_instances.append((name, camera))
+                print(f"Connected to {name} camera")
+            else:
+                print(f"Failed to connect to {name} camera")
 
     try:
         while True:
@@ -441,13 +455,20 @@ if __name__ == "__main__":
     #                        gamma_correction=2.0, noise_floor=-45, percentile_range=(0, 100), colormap=cv2.COLORMAP_INFERNO)
 
     #### Advanced realsense demo
-    from frame_processors import RealsenseDepthProcessor
-    from frame_processors.realsense_depth_processor import RealsenseProcessingOutput
-    camera = RealsenseCapture(width=640, height=480)
-    processor = RealsenseDepthProcessor(output_format=RealsenseProcessingOutput.ALIGNED_SIDE_BY_SIDE)
-    camera.attach_processor(processor)
-    test_camera(camera)
+    # from frame_processors import RealsenseDepthProcessor
+    # from frame_processors.realsense_depth_processor import RealsenseProcessingOutput
+    # camera = RealsenseCapture(width=640, height=480)
+    # processor = RealsenseDepthProcessor(output_format=RealsenseProcessingOutput.ALIGNED_SIDE_BY_SIDE)
+    # camera.attach_processor(processor)
+    brio = WebcamCaptureNokhwa("brio")
+    # test_camera(brio)
 
+
+    inno = WebcamCaptureNokhwa("inno")
+    # # test_camera(inno)
+    #
+    test_multiple_cameras(cameras=[brio], threaded=False)
+    #
     #### Other demos
     # test_camera('basler')
     # test_camera('ximea')
