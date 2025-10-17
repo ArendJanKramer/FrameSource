@@ -11,7 +11,7 @@ authors = [
     { name = "Oliver Hamilton" }
 ]
 readme = "README.md"
-requires-python = ">=3.7"
+requires-python = ">=3.9"
 license = { file = "LICENSE" }
 dependencies = [
     "opencv-python",
@@ -23,7 +23,8 @@ dependencies = [
 ]
 
 [tool.uv.sources]
-omni-camera = { git = "https://github.com/ArendJanKramer/OmniCamera.git", rev = "b85f2d6dc2ba06ca46568b15e967bae8a614db7c" }
+omni-camera = { git = "https://github.com/ArendJanKramer/OmniCamera.git", rev = "430ed609136341dbbb6ab172a6fec731a1ca5ed5" }
+#omni-camera = { path = "/home/akramer/OmniCamera", editable = true }
 
 [project.optional-dependencies]
 audio = [
