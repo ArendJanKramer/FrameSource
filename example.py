@@ -1,3 +1,5 @@
+import json
+import time
 import uuid
 from typing import Any, List
 
@@ -405,6 +407,7 @@ def test_multiple_cameras(cameras: List[Any], threaded: bool = True):
 
             cam_cfg.connect()
             capture_instances.append((name, cam_cfg))
+
         else:
             name = cam_cfg.pop('capture_type', None)
             if not name:
@@ -440,6 +443,19 @@ def test_multiple_cameras(cameras: List[Any], threaded: bool = True):
                         print(f"Failed to read frame from {name}")
             if cv2.waitKey(1) & 0xFF == ord('q'):
                 break
+            elif cv2.waitKey(1) & 0xFF == ord('a'):
+                print(f"Removing one camera")
+                i = capture_instances.pop(0)
+                i[1].disconnect()
+
+                if len(capture_instances) == 0:
+                    break
+            elif cv2.waitKey(1) & 0xFF == ord('z'):
+                print(f"Printing devices")
+                print(json.dumps(WebcamCaptureNokhwa.discover(), indent=4))
+
+    except Exception as e:
+        print(e)
     finally:
         for name, camera in capture_instances:
             if camera.is_connected:
@@ -460,14 +476,19 @@ if __name__ == "__main__":
     # camera = RealsenseCapture(width=640, height=480)
     # processor = RealsenseDepthProcessor(output_format=RealsenseProcessingOutput.ALIGNED_SIDE_BY_SIDE)
     # camera.attach_processor(processor)
-    brio = WebcamCaptureNokhwa("brio")
-    # test_camera(brio)
-
-
-    inno = WebcamCaptureNokhwa("inno")
+    n1 = WebcamCaptureNokhwa("facetime")
+    n2 = WebcamCaptureNokhwa("facetime")
     # # test_camera(inno)
     #
-    test_multiple_cameras(cameras=[brio], threaded=False)
+    test_multiple_cameras(cameras=[n1, n2], threaded=False)
+
+
+    del n1
+    del n2
+    print("All done!")
+    print(json.dumps(WebcamCaptureNokhwa.discover(), indent=4))
+
+    time.sleep(5)
     #
     #### Other demos
     # test_camera('basler')

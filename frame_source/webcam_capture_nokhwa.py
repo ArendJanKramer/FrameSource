@@ -105,7 +105,7 @@ class WebcamCaptureNokhwa(VideoCaptureBase):
             fmts : omni_camera.CameraFormatOptions = cam.get_format_options()
 
             fmts = fmts.prefer_fps_range(0, 60)
-            fmt = fmts.find_highest_resolution()
+            fmt = fmts.find_highest_framerate()
             print(f"Picked format {fmt.width}x{fmt.height}@{fmt.frame_rate}")
 
             cam.open(fmt)
@@ -113,12 +113,6 @@ class WebcamCaptureNokhwa(VideoCaptureBase):
             self.cap = cam
             self.fmt = fmt
 
-            self.controls = cam.get_controls()
-
-            for k, v in self.controls.items():
-                print(f"{k}: {v}")
-
-            print(self.controls)
             # if not self.cam.:
             #     logger.error(f"Failed to open webcam {src}")
             #     return False
