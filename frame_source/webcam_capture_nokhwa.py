@@ -270,7 +270,8 @@ class WebcamCaptureNokhwa(VideoCaptureBase):
 
             for camera_info in cameras:
                 misc = camera_info.misc
-                if "@" in camera_info.description:
+                # Fix issue where misc is empty sometimes.
+                if "@" in camera_info.description and len(misc) == 0:
                     misc += str(camera_info.description.split("@")[1]).strip()
                 devices.append({"id": f"{misc}:{camera_info.index}","index":camera_info.index, "name":camera_info.name})
             return devices
