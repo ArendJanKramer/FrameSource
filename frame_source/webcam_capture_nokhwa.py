@@ -94,12 +94,19 @@ class WebcamCaptureNokhwa(VideoCaptureBase):
         try:
             cameras = omni_camera.query(only_usable=True)
 
-            # exit()
-            picked_cam = cameras[0]
+            src = self.source
+            if ":" in src:
+                left, right = src.split(":", 1)
+                src = left if len(left) >= len(right) else right
+
+            picked_cam : omni_camera.CameraInfo | None = None
             for c in cameras:
-                if self.source in c.name.lower() or self.source in c.misc.lower():
+                if src in c.name.lower() or src in c.misc.lower() or src == str(c.index).lower() or src in c.description.lower():
                     picked_cam = c
-            print(f"Connected to webcam {picked_cam.name} at {picked_cam.description}")
+
+            if picked_cam is None:
+                logger.error(f"Camera with {self.source} not found")
+                return False
 
             cam = omni_camera.Camera(picked_cam) # Open a camera
             fmts : omni_camera.CameraFormatOptions = cam.get_format_options()
@@ -262,7 +269,10 @@ class WebcamCaptureNokhwa(VideoCaptureBase):
             devices = []
 
             for camera_info in cameras:
-                devices.append({"id": f"{camera_info.misc}:{camera_info.index}","index":camera_info.index, "name":camera_info.name})
+                misc = camera_info.misc
+                if "@" in camera_info.description:
+                    misc += str(camera_info.description.split("@")[1]).strip()
+                devices.append({"id": f"{misc}:{camera_info.index}","index":camera_info.index, "name":camera_info.name})
             return devices
         except ImportError:
             logger.warning("cv2-enumerate-cameras module not available. Install cv2-enumerate-cameras to list available (web)cameras.")
