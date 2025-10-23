@@ -23,7 +23,7 @@ dependencies = [
 ]
 
 [tool.uv.sources]
-omni-camera = { git = "https://github.com/ArendJanKramer/OmniCamera.git", rev = "430ed609136341dbbb6ab172a6fec731a1ca5ed5" }
+omni-camera = { git = "https://github.com/ArendJanKramer/OmniCamera.git", rev = "f34506a8ed1017af74ca24479f0cad80cc4a64e0" }
 #omni-camera = { path = "/home/akramer/OmniCamera", editable = true }
 
 [project.optional-dependencies]
