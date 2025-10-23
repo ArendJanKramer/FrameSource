@@ -55,7 +55,6 @@ class WebcamCaptureNokhwa(VideoCaptureBase):
             Tuple[bool, Optional[np.ndarray]]: (success, frame)
         """
         frame = getattr(self, '_latest_frame', None)
-        self._latest_frame = None  # Clear after reading to avoid stale data
         return (frame is not None), frame
 
     def _read_direct(self) -> Tuple[bool, Optional[np.ndarray]]:
