@@ -6,6 +6,8 @@ import numpy as np
 import omni_camera
 import logging
 
+from omni_camera import CameraFormat
+
 try:
     from .video_capture_base import VideoCaptureBase
 except ImportError:
@@ -87,7 +89,7 @@ class WebcamCaptureNokhwa(VideoCaptureBase):
 
         if 'is_mono' in kwargs:
             logger.warning("'is_mono' argument is only used for certain industrial cameras and has no effect for webcams.")
-        
+
     def connect(self) -> bool:
         """Connect to webcam."""
         try:
@@ -107,11 +109,47 @@ class WebcamCaptureNokhwa(VideoCaptureBase):
                 logger.error(f"Camera with {self.source} not found")
                 return False
 
+            # Select one
             cam = omni_camera.Camera(picked_cam) # Open a camera
             fmts : omni_camera.CameraFormatOptions = cam.get_format_options()
 
-            fmts = fmts.prefer_fps_range(0, 60)
-            fmt = fmts.find_highest_framerate()
+            preferred_w = self.config.get("width", 0)
+            preferred_h = self.config.get("height", 0)
+            preferred_fps = self.config.get("fps", 0)
+            preferred_specified = [preferred_w > 0, preferred_h > 0, preferred_fps > 0]
+
+            # Check if None or all are given
+            if 0 < sum(preferred_specified) < 3:
+                raise ValueError(
+                    "Invalid camera configuration: you must specify all of width, height, and fps, "
+                    "or none to use the default stream."
+                )
+
+            fmt: CameraFormat | None = None
+
+            # Try to match the exact preferred format
+            if all(preferred_specified):
+                for f in fmts:
+                    if (
+                            f.width == preferred_w
+                            and f.height == preferred_h
+                            and round(f.frame_rate) == round(preferred_fps)
+                    ):
+                        fmt = f
+                        break
+
+            # If requested format not found
+            if fmt is None:
+                if all(preferred_specified):
+                    fmts_friendly = [f"{f.width}x{f.height}@{f.frame_rate}" for f in fmts]
+                    raise ValueError(
+                        f"Could not find camera format {preferred_w}x{preferred_h}@{preferred_fps} "
+                        f"in available formats: {fmts_friendly}"
+                    )
+                else:
+                    # Default: pick a format in the 30–60 fps range, with highest resolution
+                    fmt = fmts.prefer_fps_range(30, 60).find_highest_resolution()
+
             print(f"Picked format {fmt.width}x{fmt.height}@{fmt.frame_rate}")
 
             cam.open(fmt)
@@ -119,16 +157,6 @@ class WebcamCaptureNokhwa(VideoCaptureBase):
             self.cap = cam
             self.fmt = fmt
 
-            # if not self.cam.:
-            #     logger.error(f"Failed to open webcam {src}")
-            #     return False
-            
-            # # Set additional parameters if provided
-            # if 'width' in self.config and 'height' in self.config:
-            #     self.set_frame_size(self.config['width'], self.config['height'])
-            # if 'fps' in self.config:
-            #     self.cap.set(cv2.CAP_PROP_FPS, self.config['fps'])
-                
             self.is_connected = True
             logger.info(f"Connected to webcam {cam.info.name}")
             return True
