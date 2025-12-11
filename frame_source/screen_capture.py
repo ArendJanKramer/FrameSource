@@ -271,7 +271,7 @@ class ScreenCapture(VideoCaptureBase):
         }
 
     def get_supported_formats(self):
-        return None
+        return [{"width": self.w, "height": self.h, "fps": self.fps}]
 
 
 
