@@ -775,6 +775,9 @@ class FolderCapture(VideoCaptureBase):
             ]
         }
 
+    def get_supported_formats(self):
+        return None
+
 # Standalone test code
 if __name__ == "__main__":
     import sys

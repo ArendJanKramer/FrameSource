@@ -1,4 +1,5 @@
-from typing import Optional, Tuple, Any, Dict, Union
+from collections import defaultdict
+from typing import Optional, Tuple, Any, Dict, Union, List
 import numpy as np
 import cv2
 import logging
@@ -131,6 +132,76 @@ class RealsenseCapture(VideoCaptureBase):
 
         if 'is_mono' in kwargs:
             logger.warning("'is_mono' argument is only used for certain industrial cameras and has no effect for realsense camera.")
+
+    def get_supported_formats(self) -> List[dict] | None:
+        try:
+            import pyrealsense2 as rs
+        except ImportError:
+            logger.error("pyrealsense2 is not installed")
+            return None
+
+        # Same interpretation of self.source as in connect()
+        serial_number = self.source if isinstance(self.source, str) else None
+        device_index = self.source if isinstance(self.source, int) else 0
+
+        ctx = rs.context()
+        devices = ctx.query_devices()
+
+        if len(devices) == 0:
+            logger.error("No RealSense devices found")
+            return None
+
+        # Pick device by serial or index, matching connect() behavior
+        device = None
+        if serial_number:
+            for d in devices:
+                if d.get_info(rs.camera_info.serial_number) == serial_number:
+                    device = d
+                    break
+            if device is None:
+                logger.error(f"RealSense device with serial {serial_number} not found")
+                return None
+        else:
+            if device_index < 0 or device_index >= len(devices):
+                logger.error(f"Invalid device index: {device_index}")
+                return None
+            device = devices[device_index]
+
+        fmts_by_res = defaultdict(set)
+        found_rgb = False
+
+        for sensor in device.query_sensors():
+            # Look at all stream profiles for this sensor
+            for profile in sensor.get_stream_profiles():
+                if profile.stream_type() != rs.stream.color:
+                    continue
+
+                found_rgb = True
+                vprof = profile.as_video_stream_profile()
+                if not vprof:
+                    continue
+
+                w = vprof.width()
+                h = vprof.height()
+                fps = vprof.fps()
+
+                fmts_by_res[(w, h)].add(int(fps))
+
+        if not found_rgb:
+            logger.error("RealSense device has no RGB (color) stream")
+            return None
+
+        formats = []
+        # Sort by width, then height for stable ordering
+        for (w, h), fps_set in sorted(fmts_by_res.items(), key=lambda kv: (kv[0][0], kv[0][1])):
+            formats.append({
+                "width": w,
+                "height": h,
+                "fps": sorted(fps_set),
+            })
+
+        return formats
+
 
     def connect(self) -> bool:
         """Connect to realsense camera."""

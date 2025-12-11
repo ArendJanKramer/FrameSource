@@ -1,5 +1,6 @@
 import time
-from typing import Optional, Tuple, Any, Dict
+from collections import defaultdict
+from typing import Optional, Tuple, Any, Dict, List
 
 import cv2
 import numpy as np
@@ -90,20 +91,54 @@ class WebcamCaptureNokhwa(VideoCaptureBase):
         if 'is_mono' in kwargs:
             logger.warning("'is_mono' argument is only used for certain industrial cameras and has no effect for webcams.")
 
+    def resolve(self) -> omni_camera.CameraInfo | None:
+        cameras = omni_camera.query(only_usable=True)
+
+        src = self.source
+        if ":" in src:
+            left, right = src.split(":", 1)
+            src = left if len(left) >= len(right) else right
+
+        picked_cam : omni_camera.CameraInfo | None = None
+        for c in cameras:
+            if src in c.name.lower() or src in c.misc.lower() or src == str(c.index).lower() or src in c.description.lower():
+                picked_cam = c
+
+        return picked_cam
+
+    def get_supported_formats(self) -> List[dict]:
+        picked_cam = self.resolve()
+
+        if picked_cam is None:
+            logger.error(f"Camera with {self.source} not found")
+            return {}
+
+        # Select one
+        cam = omni_camera.Camera(picked_cam) # Open a camera
+        fmts : omni_camera.CameraFormatOptions = cam.get_format_options()
+
+        grouped = defaultdict(set)
+
+        for f in fmts:
+            key = (f.width, f.height)
+            grouped[key].add(int(f.frame_rate))
+
+        formats = []
+        for (w, h) in sorted(grouped.keys(), key=lambda wh: (wh[0], wh[1])):
+            formats.append({
+                "width": w,
+                "height": h,
+                "fps": sorted(grouped[(w, h)])
+            })
+
+        return formats
+
+
+
     def connect(self) -> bool:
         """Connect to webcam."""
         try:
-            cameras = omni_camera.query(only_usable=True)
-
-            src = self.source
-            if ":" in src:
-                left, right = src.split(":", 1)
-                src = left if len(left) >= len(right) else right
-
-            picked_cam : omni_camera.CameraInfo | None = None
-            for c in cameras:
-                if src in c.name.lower() or src in c.misc.lower() or src == str(c.index).lower() or src in c.description.lower():
-                    picked_cam = c
+            picked_cam = self.resolve()
 
             if picked_cam is None:
                 logger.error(f"Camera with {self.source} not found")

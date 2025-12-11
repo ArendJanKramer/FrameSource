@@ -3,7 +3,7 @@ import cv2
 import threading
 import time
 import logging
-from typing import Optional, Tuple, Any, Union, Dict
+from typing import Optional, Tuple, Any, Union, Dict, List
 from pathlib import Path
 
 try:
@@ -990,6 +990,8 @@ class AudioSpectrogramCapture(VideoCaptureBase):
             ]
         }
 
+    def get_supported_formats(self):
+        return None
 
 if __name__ == "__main__":
     import queue

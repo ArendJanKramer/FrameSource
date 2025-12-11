@@ -1,6 +1,7 @@
 import numpy as np
 from abc import ABC, abstractmethod
-from typing import Optional, Tuple, Any
+from typing import Optional, Tuple, Any, List
+
 
 class VideoCaptureBase(ABC):
     def start_async(self):
@@ -273,3 +274,7 @@ class VideoCaptureBase(ABC):
                 frame = processor.process(frame)
         
         return ret, frame
+
+    @abstractmethod
+    def get_supported_formats(self) -> List[dict] | None:
+        pass

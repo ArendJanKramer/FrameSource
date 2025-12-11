@@ -511,6 +511,9 @@ class WebcamCapture(VideoCaptureBase):
             ]
         }
 
+    def get_supported_formats(self):
+        return None
+
 
 if __name__ == "__main__":
     # Example usage
